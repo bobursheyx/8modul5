@@ -16,15 +16,22 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.conf.urls.static import static
+from rest_framework_simplejwt.views import (
+    TokenObtainPairView,
+    TokenRefreshView,
+)
 
 from django.urls import path, include
-
+from rest_framework_simplejwt.views import TokenBlacklistView
 from uzum import settings
 from uzum import token_vieww
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('api-auth/', include('rest_framework.urls')),
-    path('app/', include('app.urls')),
-    path('api-token-auth/', token_vieww.CustomAuthToken.as_view()),
-    ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+                  path('admin/', admin.site.urls),
+                  path('api-auth/', include('rest_framework.urls')),
+                  path('uzum/', include('app.urls')),
+                  path('api-token-auth/', token_vieww.CustomAuthToken.as_view()),
+                  path('api/token/', token_vieww.CustomTokenObtainPairView.as_view(), name='token_obtain_pair'),
+                  path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+                  path('api/token/blacklist/', TokenBlacklistView.as_view(), name='token_blacklist'),
+              ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
