@@ -94,7 +94,7 @@ class Product(TimestampedModel):
 
 
 class Image(models.Model):
-    image = models.ImageField(upload_to='media/')
+    image = models.ImageField(upload_to='images/')
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='images')
     is_primary = models.BooleanField(default=False)
 
