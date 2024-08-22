@@ -17,7 +17,7 @@ class TimestampedModel(models.Model):
 class Category(models.Model):
     title = models.CharField(max_length=300, unique=True)
     slug = models.SlugField(max_length=300, unique=True, editable=False, blank=True, null=False)
-    image = models.ImageField(upload_to='media/')
+    image = models.ImageField(upload_to='images/')
 
     def save(self, *args, **kwargs):
         if not self.slug:
@@ -33,12 +33,16 @@ class Group(TimestampedModel):
     name = models.CharField(max_length=300, unique=True)
     slug = models.SlugField(max_length=300, unique=True, editable=False, blank=True, null=False)
     category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name='groups')
-    image = models.ImageField(upload_to='media/')
+    image = models.ImageField(upload_to='images/')
 
     def save(self, *args, **kwargs):
         if not self.slug:
             self.slug = slugify(self.name)
-
+            original_slug = self.slug
+            counter = 1
+            while Group.objects.filter(slug=self.slug).exists():
+                self.slug = f'{original_slug}-{counter}'
+                counter += 1
         super(Group, self).save(*args, **kwargs)
 
     def __str__(self):
@@ -50,9 +54,9 @@ class Product(TimestampedModel):
     description = models.TextField()
     price = models.FloatField()
     slug = models.SlugField(max_length=300, unique=True, editable=False, blank=True, null=False)
-    group = models.ForeignKey(Group, on_delete=models.CASCADE)
+    group = models.ForeignKey(Group, on_delete=models.CASCADE, related_name='products')
     discount = models.FloatField(default=0)
-    user_like = models.ManyToManyField(User)
+    user_like = models.ManyToManyField(User, related_name='user_like')
 
     def save(self, *args, **kwargs):
         if not self.slug:
@@ -92,6 +96,8 @@ class Product(TimestampedModel):
     def __str__(self):
         return self.name
 
+    objects = models.Manager()
+
 
 class Image(models.Model):
     image = models.ImageField(upload_to='images/')
@@ -121,6 +127,7 @@ class Comment(TimestampedModel):
 
         super(Comment, self).save(*args, **kwargs)
 
+
 class AttributeKey(models.Model):
     key = models.CharField(max_length=200, unique=True)
 
@@ -136,6 +143,6 @@ class AttributeValue(models.Model):
 
 
 class ProductAttribute(models.Model):
-    product = models.ForeignKey('app.Product', on_delete=models.CASCADE)
+    product = models.ForeignKey('app.Product', on_delete=models.CASCADE, related_name='attributes')
     key = models.ForeignKey('app.AttributeKey', on_delete=models.CASCADE)
     value = models.ForeignKey('app.AttributeValue', on_delete=models.CASCADE)
